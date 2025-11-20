@@ -39,12 +39,15 @@ class User(AbstractUser):
 
 
 class Payment(models.Model):
+    CASH = 'cash'
+    TRANSFER = 'transfer'
+
     PAYMENT_METHOD_CHOICES = [
-        ("cash", "Наличные"),
-        ("transfer", "Перевод на счёт"),
+        (CASH, 'Наличные'),
+        (TRANSFER, 'Перевод на счёт'),
     ]
 
-    users = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name="payments",
@@ -86,6 +89,7 @@ class Payment(models.Model):
     payment_method = models.CharField(
         max_length=20,
         choices=PAYMENT_METHOD_CHOICES,
+        default=TRANSFER,
         blank=True,
         null=True,
         verbose_name="Способ оплаты",
