@@ -16,3 +16,9 @@ class UserSerializer(ModelSerializer):
         model = User
         fields = "__all__"
         read_only_fields = ("id",)
+
+
+class UserUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("phone", "city", "avatar", "email")

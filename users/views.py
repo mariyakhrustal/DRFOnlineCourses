@@ -3,10 +3,12 @@ from rest_framework import filters
 from rest_framework.generics import (CreateAPIView, DestroyAPIView,
                                      ListAPIView, RetrieveAPIView,
                                      UpdateAPIView)
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from users.models import Payment, User
-from users.serializers import PaymentSerializer, UserSerializer
+from users.permissions import IsOwner
+from users.serializers import (PaymentSerializer, UserSerializer,
+                               UserUpdateSerializer)
 
 
 class UserCreateAPIView(CreateAPIView):
@@ -18,6 +20,17 @@ class UserCreateAPIView(CreateAPIView):
         user = serializer.save(is_active=True)
         user.set_password(user.password)
         user.save()
+
+
+class UserUpdateAPIView(UpdateAPIView):
+    serializer_class = UserUpdateSerializer
+    permission_classes = (
+        IsAuthenticated,
+        IsOwner,
+    )
+
+    def get_object(self):
+        return self.request.user
 
 
 class PaymentListAPIView(ListAPIView):
