@@ -14,5 +14,11 @@ class UserSerializer(ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "email", "phone", "city", "avatar", "payments")
+        fields = "__all__"
         read_only_fields = ("id",)
+
+
+class UserUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = ("phone", "city", "avatar", "email")
