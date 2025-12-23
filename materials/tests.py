@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from materials.models import Lesson, Course, Subscription
+from materials.models import Course, Lesson, Subscription
 from users.models import User
 
 
@@ -12,7 +12,9 @@ class LessonTestCase(APITestCase):
         self.moderator = User.objects.create(email="moder@test.ru")
         self.moderator.groups.create(name="moders")
         self.course = Course.objects.create(name="Курс Python", owner=self.user)
-        self.lesson = Lesson.objects.create(name="Урок 1", course=self.course, owner=self.user)
+        self.lesson = Lesson.objects.create(
+            name="Урок 1", course=self.course, owner=self.user
+        )
 
     def test_lesson_retrieve(self):
         self.client.force_authenticate(user=self.user)
@@ -33,10 +35,7 @@ class LessonTestCase(APITestCase):
     def test_lesson_create(self):
         self.client.force_authenticate(user=self.user)
         url = reverse("materials:lessons_create")
-        data = {
-            "name": "Новый урок",
-            "course": self.course.pk
-        }
+        data = {"name": "Новый урок", "course": self.course.pk}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Lesson.objects.count(), 2)
@@ -44,16 +43,15 @@ class LessonTestCase(APITestCase):
     def test_lesson_create_moderator_forbidden(self):
         self.client.force_authenticate(user=self.moderator)
         url = reverse("materials:lessons_create")
-        response = self.client.post(url, {"name": "Запрещено", "course": self.course.pk})
+        response = self.client.post(
+            url, {"name": "Запрещено", "course": self.course.pk}
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_lesson_update(self):
         self.client.force_authenticate(user=self.user)
         url = reverse("materials:lessons_update", args=(self.lesson.pk,))
-        data = {
-            "name": "Новый урок 123",
-            "course": self.course.pk
-        }
+        data = {"name": "Новый урок 123", "course": self.course.pk}
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -112,9 +110,9 @@ class LessonTestCase(APITestCase):
                     "image": None,
                     "video_link": None,
                     "course": self.course.pk,
-                    "owner": self.user.pk
+                    "owner": self.user.pk,
                 }
-            ]
+            ],
         }
         self.assertEqual(data, result)
 
@@ -136,9 +134,9 @@ class LessonTestCase(APITestCase):
                     "image": None,
                     "video_link": None,
                     "course": self.course.pk,
-                    "owner": self.user.pk
+                    "owner": self.user.pk,
                 }
-            ]
+            ],
         }
         self.assertEqual(data, result)
 
@@ -156,26 +154,17 @@ class SubscriptionTestCase(APITestCase):
         response = self.client.post(self.url, {"course_id": self.course.pk})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
-            Subscription.objects.filter(
-                user=self.user,
-                course=self.course
-            ).exists()
+            Subscription.objects.filter(user=self.user, course=self.course).exists()
         )
         self.assertEqual(response.data["message"], "Подписка добавлена")
 
     def test_delete_subscription(self):
-        Subscription.objects.create(
-            user=self.user,
-            course=self.course
-        )
+        Subscription.objects.create(user=self.user, course=self.course)
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {"course_id": self.course.pk})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(
-            Subscription.objects.filter(
-                user=self.user,
-                course=self.course
-            ).exists()
+            Subscription.objects.filter(user=self.user, course=self.course).exists()
         )
         self.assertEqual(response.data["message"], "Подписка удалена")
 
@@ -186,8 +175,7 @@ class SubscriptionTestCase(APITestCase):
         self.assertEqual(response.data["error"], "course_id обязателен")
 
     def test_subscription_unauthorized(self):
-        response = self.client.post(
-            self.url, {"course_id": self.course.pk})
+        response = self.client.post(self.url, {"course_id": self.course.pk})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_subscription_moderator(self):
