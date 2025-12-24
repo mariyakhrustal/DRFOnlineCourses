@@ -44,7 +44,10 @@ class CourseViewSet(ModelViewSet):
         user = self.request.user
         if user.groups.filter(name="moders").exists():
             return Course.objects.all()
-        return Course.objects.filter(owner=user)
+        else:
+            if not self.request.user.is_anonymous:
+                return Course.objects.filter(owner=user)
+            return None
 
     def perform_create(self, serializer):
         course = serializer.save()
@@ -84,7 +87,10 @@ class LessonListAPIView(ListAPIView):
         user = self.request.user
         if user.groups.filter(name="moders").exists():
             return Lesson.objects.all()
-        return Lesson.objects.filter(owner=user)
+        else:
+            if not self.request.user.is_anonymous:
+                return Lesson.objects.filter(owner=user)
+            return None
 
 
 class LessonRetrieveAPIView(RetrieveAPIView):
@@ -96,7 +102,10 @@ class LessonRetrieveAPIView(RetrieveAPIView):
         user = self.request.user
         if user.groups.filter(name="moders").exists():
             return Lesson.objects.all()
-        return Lesson.objects.filter(owner=user)
+        else:
+            if not self.request.user.is_anonymous:
+                return Lesson.objects.filter(owner=user)
+            return None
 
 
 class LessonUpdateAPIView(UpdateAPIView):
@@ -108,7 +117,10 @@ class LessonUpdateAPIView(UpdateAPIView):
         user = self.request.user
         if user.groups.filter(name="moders").exists():
             return Lesson.objects.all()
-        return Lesson.objects.filter(owner=user)
+        else:
+            if not self.request.user.is_anonymous:
+                return Lesson.objects.filter(owner=user)
+            return None
 
 
 class LessonDestroyAPIView(DestroyAPIView):
@@ -120,4 +132,7 @@ class LessonDestroyAPIView(DestroyAPIView):
         user = self.request.user
         if user.groups.filter(name="moders").exists():
             return Lesson.objects.all()
-        return Lesson.objects.filter(owner=user)
+        else:
+            if not self.request.user.is_anonymous:
+                return Lesson.objects.filter(owner=user)
+            return None
