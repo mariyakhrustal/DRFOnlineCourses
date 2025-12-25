@@ -54,7 +54,7 @@ class Payment(models.Model):
         verbose_name="Пользователь",
         help_text="Укажите пользователя",
     )
-    payment_date = models.DateField(
+    date = models.DateField(
         blank=True,
         null=True,
         verbose_name="Дата платежа",
@@ -78,15 +78,13 @@ class Payment(models.Model):
         verbose_name="Оплаченный урок",
         help_text="Укажите оплаченный урок",
     )
-    payment_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
+    amount = models.PositiveIntegerField(
         blank=True,
         null=True,
         verbose_name="Сумма платежа",
         help_text="Укажите сумму платежа",
     )
-    payment_method = models.CharField(
+    method = models.CharField(
         max_length=20,
         choices=PAYMENT_METHOD_CHOICES,
         default=TRANSFER,
@@ -95,6 +93,23 @@ class Payment(models.Model):
         verbose_name="Способ оплаты",
         help_text="Укажите способ оплаты",
     )
+    session_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        verbose_name="Id на сессии",
+        help_text="Укажите id на сессии",
+    )
+    session_url = models.URLField(
+        max_length=400,
+        blank=True,
+        null=True,
+        verbose_name="Ссылка на оплату",
+        help_text="Укажите ссылку на оплату",
+    )
+
+    def __str__(self):
+        return self.amount
 
     class Meta:
         verbose_name = "Платеж"
