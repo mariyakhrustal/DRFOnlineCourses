@@ -101,7 +101,7 @@ class Payment(models.Model):
         help_text="Укажите id на сессии",
     )
     session_url = models.URLField(
-        max_length=400,
+        max_length=1500,
         blank=True,
         null=True,
         verbose_name="Ссылка на оплату",
