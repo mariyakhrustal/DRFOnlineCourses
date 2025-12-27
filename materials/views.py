@@ -10,6 +10,7 @@ from rest_framework.viewsets import ModelViewSet
 from materials.models import Course, Lesson, Subscription
 from materials.paginators import CourseLessonListPagination
 from materials.serializers import CourseSerializer, LessonSerializer
+from materials.tasks import send_update_course_email
 from users.permissions import IsModer, IsOwner
 
 
@@ -52,6 +53,11 @@ class CourseViewSet(ModelViewSet):
     def perform_create(self, serializer):
         course = serializer.save()
         course.owner = self.request.user
+        course.save()
+
+    def perform_update(self, serializer):
+        course = serializer.save()
+        send_update_course_email.delay(course.id, course.name)
         course.save()
 
     def get_permissions(self):
@@ -121,6 +127,12 @@ class LessonUpdateAPIView(UpdateAPIView):
             if not self.request.user.is_anonymous:
                 return Lesson.objects.filter(owner=user)
             return None
+
+    def perform_update(self, serializer):
+        lesson = serializer.save()
+        course = lesson.course
+        send_update_course_email.delay(course.id, course.name)
+        lesson.save()
 
 
 class LessonDestroyAPIView(DestroyAPIView):
