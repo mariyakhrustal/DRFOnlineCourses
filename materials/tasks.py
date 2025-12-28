@@ -6,11 +6,6 @@ from materials.models import Subscription
 
 
 @shared_task
-def example():
-    print("hello world")
-
-
-@shared_task
 def send_update_course_email(course_id, course_name):
     subscriptions = Subscription.objects.filter(course=course_id)
     email_list = [sub.user.email for sub in subscriptions]
