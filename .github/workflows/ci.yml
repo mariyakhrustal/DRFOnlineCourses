@@ -94,11 +94,34 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
+      #      - name: Deploy to Server
+      #        run: |
+      #          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+      #            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+      #            docker stop myapp || true
+      #            docker rm myapp || true
+      #            docker run -d --name myapp -p 80:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+      #          EOF
       - name: Deploy to Server
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+            # 1. Скачиваем новый образ
             docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+          
+            # 2. Останавливаем старый контейнер, если он есть
             docker stop myapp || true
             docker rm myapp || true
-            docker run -d --name myapp -p 80:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+          
+            # 3. Запускаем новый с передачей настроек базы
+            docker run -d --name myapp \
+              -p 80:8000 \
+              -e POSTGRES_DB=${{ secrets.DB_NAME }} \
+              -e POSTGRES_USER=${{ secrets.DB_USER }} \
+              -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e POSTGRES_HOST=${{ secrets.DB_HOST }} \
+              -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+          
+            # 4. Сразу применяем миграции внутри запущенного контейнера
+            docker exec myapp python manage.py migrate
           EOF
