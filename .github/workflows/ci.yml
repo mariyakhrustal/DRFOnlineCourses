@@ -115,11 +115,11 @@ jobs:
             # 3. Запускаем новый с передачей настроек базы
             docker run -d --name myapp \
               -p 80:8000 \
-              -e POSTGRES_DB=${{ secrets.DB_NAME }} \
-              -e POSTGRES_USER=${{ secrets.DB_USER }} \
-              -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e POSTGRES_HOST=${{ secrets.DB_HOST }} \
-              -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
+              -e POSTGRES_DB='${{ secrets.DB_NAME }}' \
+              -e POSTGRES_USER='${{ secrets.DB_USER }}' \
+              -e POSTGRES_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+              -e POSTGRES_HOST='${{ secrets.DB_HOST }}' \
+              -e SECRET_KEY='${{ secrets.SECRET_KEY }}' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
           
             # 4. Сразу применяем миграции внутри запущенного контейнера
