@@ -97,27 +97,21 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: Copy docker-compose.yml to server
+      - name: Deploy to Server
         run: |
-          scp -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:~/docker-compose.yml
-
-      - name: Deploy with Docker Compose
-        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "mkdir -p ~/myapp"
+          scp -r -o StrictHostKeyChecking=no ./* ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:~/myapp/
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            cd ~
+            cd ~/myapp
+          
             # Создаем .env файл из секретов GitHub
-            echo "NAME=${{ secrets.DB_NAME }}" > .env
-            echo "USER=${{ secrets.DB_USER }}" >> .env
-            echo "PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-            echo "SECRET_KEY='${{ secrets.SECRET_KEY }}'" >> .env
-            echo "DB_HOST=db" >> .env
-          
-            # Авторизуемся в Docker Hub (чтобы стянуть образ)
-            echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
-          
-            # Подтягиваем новые образы и перезапускаем всё
-            # Заменяем образ в compose на тот, что только что собрали
-            export IMAGE_NAME=${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
-            docker compose pull
-            docker compose up -d
+            cat << 'INNER_EOF' > .env
+            NAME=${{ secrets.DB_NAME }}
+            USER=${{ secrets.DB_USER }}
+            PASSWORD=${{ secrets.DB_PASSWORD }}
+            HOST=db
+            SECRET_KEY='${{ secrets.SECRET_KEY }}'
+            INNER_EOF
+            docker compose down
+            docker compose up -d --build --remove-orphans
           EOF
