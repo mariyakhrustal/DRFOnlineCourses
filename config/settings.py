@@ -149,6 +149,8 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+CELERY_TASK_ALWAYS_EAGER = os.getenv("CI") == "True"
+
 if "test" in sys.argv:
     DATABASES = {
         "default": {
