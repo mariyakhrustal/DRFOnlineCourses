@@ -24,7 +24,7 @@ jobs:
       NAME: ${{ secrets.DB_NAME }}
       USER: ${{ secrets.DB_USER }}
       PASSWORD: ${{ secrets.DB_PASSWORD }}
-      HOST: postgres
+      HOST: localhost
       PORT: 5432
 
     steps:
@@ -34,7 +34,7 @@ jobs:
       - name: Wait for PostgreSQL to be ready
         run: |
           for i in {1..60}; do
-            pg_isready -h postgres -p 5432 -U ${{ secrets.DB_USER }} && break
+            pg_isready -h localhost -p 5432 -U ${{ secrets.DB_USER }} && break
             echo "Waiting for Postgres..."
             sleep 2
           done
