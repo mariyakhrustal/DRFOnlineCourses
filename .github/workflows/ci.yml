@@ -21,11 +21,11 @@ jobs:
           --health-retries 5
 
     env:
-      POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-      POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
+      NAME: ${{ secrets.POSTGRES_DB }}
+      USER: ${{ secrets.POSTGRES_USER }}
+      PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      HOST: postgres
+      PORT: 5432
 
     steps:
       - name: Check out code
