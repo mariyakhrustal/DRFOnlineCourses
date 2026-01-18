@@ -94,34 +94,28 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      #      - name: Deploy to Server
-      #        run: |
-      #          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-      #            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
-      #            docker stop myapp || true
-      #            docker rm myapp || true
-      #            docker run -d --name myapp -p 80:8000 ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
-      #          EOF
-      - name: Deploy to Server
+      - name: Copy docker-compose.yaml to server
+        run: |
+          scp -o StrictHostKeyChecking=no docker-compose.yaml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:~/myapp/docker-compose.yaml
+
+      - name: Deploy with Docker Compose
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-            # 1. Скачиваем новый образ
-            docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+            cd ~/myapp
           
-            # 2. Останавливаем старый контейнер, если он есть
-            docker stop myapp || true
-            docker rm myapp || true
+            # Создаем .env файл из секретов GitHub
+            echo "NAME=${{ secrets.DB_NAME }}" > .env
+            echo "USER=${{ secrets.DB_USER }}" >> .env
+            echo "PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+            echo "SECRET_KEY='${{ secrets.SECRET_KEY }}'" >> .env
+            echo "DB_HOST=db" >> .env
           
-            # 3. Запускаем новый с передачей настроек базы
-            docker run -d --name myapp \
-              -p 80:8000 \
-              -e POSTGRES_DB='${{ secrets.DB_NAME }}' \
-              -e POSTGRES_USER='${{ secrets.DB_USER }}' \
-              -e POSTGRES_PASSWORD='${{ secrets.DB_PASSWORD }}' \
-              -e POSTGRES_HOST='${{ secrets.DB_HOST }}' \
-              -e SECRET_KEY='${{ secrets.SECRET_KEY }}' \
-              ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+            # Авторизуемся в Docker Hub (чтобы стянуть образ)
+            echo ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }} | docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} --password-stdin
           
-            # 4. Сразу применяем миграции внутри запущенного контейнера
-            docker exec myapp python manage.py migrate
+            # Подтягиваем новые образы и перезапускаем всё
+            # Заменяем образ в compose на тот, что только что собрали
+            export IMAGE_NAME=${{ secrets.DOCKER_HUB_USERNAME }}/myapp:${{ github.sha }}
+            docker compose pull
+            docker compose up -d
           EOF
