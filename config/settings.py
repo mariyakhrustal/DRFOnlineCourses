@@ -149,8 +149,6 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-import os
-
 # Считываем значение из окружения. Если оно "True", то включаем Eager-режим.
 CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER") == "True"
 
