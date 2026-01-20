@@ -70,3 +70,45 @@ docker-compose logs
 ```
 docker-compose down
 ```
+
+## Настройка удаленного сервера и деплой
+
+В проекте настроен автоматический деплой через GitHub Actions. При каждом push запускается цепочка (Workflow),
+которая тестирует, собирает и обновляет проект на сервере.
+
+### Настройка удаленного сервера
+
+Для успешного деплоя на сервере должны быть:
+
+- ОС: Ubuntu.
+- Docker и Docker Compose.
+- Созданная папка проекта (путь по умолчанию: ~/myapp).
+
+### Настройка GitHub Secrets
+
+Для работы Workflow необходимо добавить следующие переменные в Settings -> Secrets and variables -> Actions:
+
+* SSH_KEY - Ваш приватный SSH ключ для доступа к серверу
+* SERVER_IP - IP адрес вашего сервера
+* SSH_USER - Имя пользователя на сервере (например, root)
+* DOCKER_HUB_USERNAME - Логин на Docker Hub
+* DOCKER_HUB_ACCESS_TOKEN - Токен доступа Docker Hub
+* SECRET_KEY - Django Secret Key
+* DB_NAME / DB_USER / DB_PASSWORD - Данные для подключения к PostgreSQL
+
+### Процесс деплоя (Workflow)
+
+Автоматизация разделена на три этапа:
+
+1. Test: Запуск тестов Django.
+2. Build: Сборка Docker-образа и отправка его в Docker Hub.
+3. Deploy: * Копирование конфигураций (включая nginx.conf и docker-compose.yml) на сервер.
+    - Генерация файла .env из секретов GitHub.
+    - Перезапуск контейнеров командой docker compose up -d --build.
+
+### Ручное управление на сервере
+
+1. Просмотр логов
+   `docker compose logs`
+2. Перезапуск проекта
+   `docker compose up -d --build`
